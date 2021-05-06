@@ -22,4 +22,3 @@ mv result_matrix.txt mm_omp.txt
 
 diff mm_seq.txt mm_pth.txt
 diff mm_seq.txt mm_omp.txt
- 
