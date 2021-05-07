@@ -7,4 +7,29 @@
 #SBATCH --output=%x.%j.out          # Name of stdout output file - %j expands to jobId and %x to jobName
 #SBATCH --error=%x.%j.err           # Name of stderr output file
 
-OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} make -e run.txt
+# OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} make -e run.txt
+if ! srun -v COMMAND &> /dev/null
+then
+    echo "Using sudo"
+    SRUN="sudo"
+else
+    echo "Using srun"
+    SRUN="srun"
+fi
+export NUM_STEPS=1000000000
+
+echo "SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK}" | tee job.log
+echo "*** SEQUENTIAL ***" | tee -a job.log
+${SRUN} singularity run pi-int.sif pi_seq ${NUM_STEPS} \
+    | sed "s/^/SEQ\tUNITS=01\t/" | tee -a job.log
+echo "*** PTHREAD ***" | tee -a job.log
+for UNITS in {01,02,05,10,20,40}; do
+    ${SRUN} singularity run pi-int.sif pi_pth ${NUM_STEPS} "${UNITS}" \
+        | sed "s/^/PTH\tUNITS=${UNITS}\t/" | tee -a job.log
+done
+echo "*** OPENMP ***" | tee -a job.log
+for UNITS in {01,02,05,10,20,40}; do
+    export OMP_NUM_THREADS=${UNITS}
+    ${SRUN} singularity run pi-int.sif pi_omp ${NUM_STEPS} \
+        | sed "s/^/OMP\tUNITS=${UNITS}\t/" | tee -a job.log
+done

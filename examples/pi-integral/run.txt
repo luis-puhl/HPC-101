@@ -1,7 +1,7 @@
-OMP_NUM_THREADS=20
+OMP_NUM_THREADS=8
 *** SEQUENTIAL ***
-pi with 100000000 steps is 3.141592654 in 1.706951 seconds
+pi with 1000000 steps is 3.141592654 in 0.018757 seconds
 *** PTHREAD ***
-pi with 100000000 steps is 3.141592654 in 0.252987 seconds
+pi with 1000000 steps is 3.141592654 in 0.004385 seconds
 *** OPENMP ***
-pi with 100000000 steps is 3.141592654 in 0.273666 seconds
+pi with 1000000 steps is 3.141592654 in 0.010003 seconds
