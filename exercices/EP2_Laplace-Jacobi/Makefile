@@ -1,15 +1,15 @@
 CC=gcc
 
-all: clean sequential pthread openmp
+all: clean laplace_seq laplace_pth laplace_omp
 
-sequential:
-	$(CC) laplace_seq.c -o laplace_seq
+laplace_seq: laplace_seq.c
+	$(CC) $^ -o $@
 
-pthread:
-	$(CC) laplace_pth.c -o laplace_pth -lpthread
+laplace_pth: laplace_pth.c
+	$(CC) $^ -o $@ -lpthread
 
-openmp:
-	$(CC) laplace_omp.c -o laplace_omp -fopenmp
+laplace_omp: laplace_omp.c
+	$(CC) $^ -o $@ -fopenmp
 
 clean:
 	rm -f laplace_seq laplace_pth laplace_omp
