@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     // store each thread ID
     int t_id[num_threads];
 
-    // allocate momory for the vector of results
+    // allocate memory for the vector of results
     t_sum = (double *) malloc(num_threads * sizeof(double));
 
     // create the threads
