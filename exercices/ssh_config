@@ -1,0 +1,8 @@
+Compression yes
+
+# Disciplina CCO-129-7 Introdução à Computação de Alto Desempenho - Pós-graduação
+Host sms
+  HostName openhpc.ufscar.br
+  User u1141565
+  LocalForward	3232	127.0.0.1:3232
+  RemoteForward	3131	127.0.0.1:3131

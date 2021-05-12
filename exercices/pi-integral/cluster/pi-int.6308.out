@@ -1,0 +1,18 @@
+Using srun
+SLURM_CPUS_PER_TASK=40
+*** SEQUENTIAL ***
+SEQ	UNITS=01	pi with 1000000000 steps is 3.141592654 in 16.061297 seconds
+*** PTHREAD ***
+PTH	UNITS=01	pi with 1000000000 steps is 3.141592654 in 16.047649 seconds
+PTH	UNITS=02	pi with 1000000000 steps is 3.141592654 in 8.031850 seconds
+PTH	UNITS=05	pi with 1000000000 steps is 3.141592654 in 3.429154 seconds
+PTH	UNITS=10	pi with 1000000000 steps is 3.141592654 in 1.855043 seconds
+PTH	UNITS=20	pi with 1000000000 steps is 3.141592654 in 0.930800 seconds
+PTH	UNITS=40	pi with 1000000000 steps is 3.141592654 in 0.510899 seconds
+*** OPENMP ***
+OMP	UNITS=01	pi with 1000000000 steps is 3.141592654 in 16.050153 seconds
+OMP	UNITS=02	pi with 1000000000 steps is 3.141592654 in 8.031462 seconds
+OMP	UNITS=05	pi with 1000000000 steps is 3.141592654 in 3.511448 seconds
+OMP	UNITS=10	pi with 1000000000 steps is 3.141592654 in 1.855881 seconds
+OMP	UNITS=20	pi with 1000000000 steps is 3.141592654 in 0.932320 seconds
+OMP	UNITS=40	pi with 1000000000 steps is 3.141592654 in 0.480989 seconds
