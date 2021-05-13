@@ -5,82 +5,18 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <threads.h>
 
 #define ITER_MAX 3000 // number of maximum iterations
 #define CONV_THRESHOLD 1.0e-5f // threshold of convergence
 
-// matrix to be solved
-double **grid;
-
-// auxiliary matrix
-double **new_grid;
-
-// size of each side of the grid
-int size;
-
-// return the maximum value
-double max(double a, double b){
-    if(a > b)
-        return a;
-    return b;
-}
-
-// return the absolute value of a number
-double absolute(double num){
-    if(num < 0)
-        return -1.0 * num;
-    return num;
-}
-
-// allocate memory for the grid
-void allocate_memory(){
-    grid = (double **) malloc(size * sizeof(double *));
-    new_grid = (double **) malloc(size * sizeof(double *));
-
-    for(int i = 0; i < size; i++){
-        grid[i] = (double *) malloc(size * sizeof(double));
-        new_grid[i] = (double *) malloc(size * sizeof(double));
-    }
-}
-
-// initialize the grid
-void initialize_grid(){
+int main(int argc, char *argv[]){
     // seed for random generator
     srand(10);
-
-    for (int i = 0; i < size; i++){
-        for (int j = 0; j < size; j++){
-            grid[i][j] = rand() % 100;
-            new_grid[i][j] = 0.0;
-        }
-    }
-}
-
-// save the grid in a file
-void save_grid(){
-
-    char file_name[30];
-    sprintf(file_name, "grid_laplace.txt");
-
-    // save the result
-    FILE *file;
-    file = fopen(file_name, "w");
-
-    for(int i = 0; i < size; i++){
-        for(int j = 0; j < size; j++){
-            fprintf(file, "%lf ", grid[i][j]);
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-}
-
-int main(int argc, char *argv[]){
-
-    if(argc != 2){
-        printf("Usage: ./laplace_seq N\n");
+    if(argc != 3){
+        printf("Usage: ./laplace_seq N T\n");
         printf("N: The size of each side of the domain (grid)\n");
+        printf("T: Number of threads\n");
         exit(-1);
     }
 
@@ -88,18 +24,37 @@ int main(int argc, char *argv[]){
     struct timeval time_start;
     struct timeval time_end;
 
-    size = atoi(argv[1]);
+    // size of each side of the grid
+    int size = atoi(argv[1]);
+    int threads = atoi(argv[2]);
 
     // allocate memory to the grid (matrix)
-    allocate_memory();
+    // matrix to be solved
+    double **grid = (double **)calloc(size, sizeof(double *));
+
+    // auxiliary matrix
+    double **new_grid = (double **)calloc(size, sizeof(double *));
+    double **swap_grid;
+
+    for(int i = 0; i < size; i++){
+        grid[i] = (double *) calloc(size, sizeof(double));
+        new_grid[i] = (double *) calloc(size, sizeof(double));
+    }
 
     // set grid initial conditions
-    initialize_grid();
+    for (int i = 0; i < size; i++){
+        for (int j = 0; j < size; j++){
+            grid[i][j] = rand() % 100;
+            new_grid[i][j] = grid[i][j];
+            printf("%lf ", grid[i][j]);
+        }
+        printf("\n");
+    }
 
     double err = 1.0;
     int iter = 0;
 
-    printf("Jacobi relaxation calculation: %d x %d grid\n", size, size);
+    printf("Jacobi relaxation calculation: %d x %d grid\t%s\n", size, size, argv[0]);
 
     // get the start time
     gettimeofday(&time_start, NULL);
@@ -118,19 +73,22 @@ int main(int argc, char *argv[]){
                 new_grid[i][j] = 0.25 * (grid[i][j+1] + grid[i][j-1] +
                                          grid[i-1][j] + grid[i+1][j]);
 
-                err = max(err, absolute(new_grid[i][j] - grid[i][j]));
+                // err = max(err, absolute(new_grid[i][j] - grid[i][j]));
+                double diff = new_grid[i][j] - grid[i][j];
+                // abs
+                if (diff < 0) {
+                    diff *= -1.0;
+                }
+                // max
+                if (diff > err) {
+                    err = diff;
+                }
             }
         }
 
-        // copie the next values into the working array for the next iteration
-        for( int i = 1; i < size-1; i++) {
-            for( int j = 1; j < size-1; j++) {
-                grid[i][j] = new_grid[i][j];
-            }
-        }
-
-        if(iter % 100 == 0)
-            printf("Error of %0.10lf at iteration %d\n", err, iter);
+        swap_grid = grid;
+        grid = new_grid;
+        new_grid = swap_grid;
 
         iter++;
     }
@@ -142,7 +100,12 @@ int main(int argc, char *argv[]){
                        (double) (time_end.tv_usec - time_start.tv_usec) / 1000000.0;
 
     //save the final grid in file
-    save_grid();
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+            printf("%lf ", grid[i][j]);
+        }
+        printf("\n");
+    }
 
     printf("\nKernel executed in %lf seconds with %d iterations and error of %0.10lf\n", exec_time, iter, err);
 
