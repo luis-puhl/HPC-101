@@ -6,8 +6,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define ITER_MAX 3000 // number of maximum iterations
-#define CONV_THRESHOLD 1.0e-5f // threshold of convergence
+#define ITER_MAX 50000 // number of maximum iterations
+#define CONV_THRESHOLD 1.0e-8f // threshold of convergence
 
 int main(int argc, char *argv[]){
     // seed for random generator
@@ -47,10 +47,6 @@ int main(int argc, char *argv[]){
         }
         printf("\n");
     }
-
-    double err = 1.0;
-    int iter = 0;
-
     printf("Jacobi relaxation calculation: %d x %d grid\t%s\n", size, size, argv[0]);
 
     // get the start time
@@ -59,8 +55,9 @@ int main(int argc, char *argv[]){
     // Jacobi iteration
     // This loop will end if either the maximum change reaches below a set threshold (convergence)
     // or a fixed number of maximum iterations have completed
-    while ( err > CONV_THRESHOLD && iter <= ITER_MAX ) {
-
+    double err = 0.0;
+    int iter;
+    for (iter = 0; iter <= ITER_MAX; iter++) {
         err = 0.0;
 
         // calculates the Laplace equation to determine each cell's next value
@@ -77,17 +74,25 @@ int main(int argc, char *argv[]){
                     diff *= -1.0;
                 }
                 // max
-                if (diff > err) {
-                    err = diff;
-                }
+                // if (diff > err) {
+                //     err = diff;
+                // }
+                err += diff;
             }
+        }
+        if (err < CONV_THRESHOLD) {
+            fprintf(stderr, "main break iteration=%d, err=%le\n", iter, err);
+            break;
         }
 
         swap_grid = grid;
         grid = new_grid;
         new_grid = swap_grid;
-
-        iter++;
+        
+        if (iter < 3 || (iter % (ITER_MAX / 100)) == 0) {
+            fprintf(stderr, "iteration=%d, err=%le\n", iter, err);
+            // fprintf(stderr, "Root, grid(%p, %p)\n", grids.now, grids.next);
+        }
     }
 
     // get the end time
@@ -104,7 +109,7 @@ int main(int argc, char *argv[]){
         printf("\n");
     }
 
-    printf("\nKernel executed in %lf seconds with %d iterations and error of %0.10lf\n", exec_time, iter, err);
+    printf("\n%s Kernel executed in %le seconds with %d iterations and error of %le\n", argv[0], exec_time, iter, err);
 
     return 0;
 }
