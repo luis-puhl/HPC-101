@@ -1,0 +1,8 @@
+inferior=2, superior3
+Jacobi relaxation calculation: 5 x 5 grid	./laplace_seq
+iteration=0, err=1.000000e+02
+iteration=1, err=2.500000e+01
+iteration=2, err=2.500000e+01
+main break iteration=45, err=5.960464e-06
+
+./laplace_seq Kernel executed in 3.880000e-04 seconds with 45 iterations and error of 5.960464e-06

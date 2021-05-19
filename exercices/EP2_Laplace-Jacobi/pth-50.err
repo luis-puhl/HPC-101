@@ -1,6 +1,0 @@
-Root, grid(0x55b63ba612a0, 0x55b63ba61440)
-iteration=0, err=63954.2500000000
-iteration=1, err=33633.8750000000
-iteration=2, err=25821.5468750000
-iteration=10000, err=0.0000013284
-main break iteration=12383, err=9.982280e-09

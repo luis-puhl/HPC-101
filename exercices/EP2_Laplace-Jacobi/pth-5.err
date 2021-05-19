@@ -1,5 +1,2 @@
-Root, grid(0x5565308d52a0, 0x5565308d52d0)
-iteration=0, err=183.0000000000
-iteration=1, err=94.7500000000
-iteration=2, err=66.6562500000
-main break iteration=68, err=7.759809e-09
+inferior=2, superior3
+Jacobi relaxation calculation: 5 x 5 grid	./laplace_pth

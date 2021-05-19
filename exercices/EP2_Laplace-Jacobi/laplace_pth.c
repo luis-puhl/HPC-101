@@ -1,6 +1,8 @@
 /*
     This program solves Laplace's equation on a regular 2D grid using simple Jacobi iteration.
 */
+#include "./laplace.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -9,27 +11,17 @@
 #include <pthread.h>
 
 #define ERR(v) if((v) != 0) errx(EXIT_FAILURE, "Assert error. At "__FILE__":%d\n", __LINE__)
-
 typedef struct {
     pthread_mutex_t lock;
-    pthread_cond_t isEmpty, isFull;
-    size_t length, size, head, tail;
-} Queue;
-
-#define ITER_MAX 50000         // number of maximum iterations
-#define CONV_THRESHOLD 1.0e-8f // threshold of convergence
+    pthread_cond_t start, done;
+    size_t nThreads, nDone;
+} Signals;
 
 typedef struct {
-    double **now, **next;
-    Queue input, output;
-    int *todo;
-    double *done;
-    int size;
-} Grids;
-
-typedef struct {
-    int done;
-    Grids *state;
+    int threadId, indexStart, indexEnd;
+    double error;
+    Grid *state;
+    Signals *signal;
 } ThreadArgs;
 
 /**
@@ -38,60 +30,41 @@ typedef struct {
 static void *processor(void *void_args) {
     ThreadArgs* args = void_args;
     int iterations = 0;
-    while (!args->done) {
-        // 
-        // int i = get(&args->state->input);
-        Queue *q = &args->state->input;
-        ERR(pthread_mutex_lock(&q->lock));
-        while (q->size == 0) {
-            ERR(pthread_cond_wait(&q->isFull, &q->lock));
+    Signals *signal = args->signal;
+    ERR(pthread_cond_signal(&signal->done));
+    // fprintf(stderr, "[%d] ready\n", args->threadId);
+    while (1) {
+        ERR(pthread_mutex_lock(&signal->lock));
+        // while (args->signal->nStarted != 0) {
+            ERR(pthread_cond_wait(&signal->start, &signal->lock));
+        // }
+        // fprintf(stderr, "[%d] start iter=%d\n", args->threadId, iterations);
+        ERR(pthread_mutex_unlock(&signal->lock));
+        if (args->signal->nThreads == 0) {
+            break;
         }
-        int i = args->state->todo[q->head];
-        q->head = (q->head + 1) % q->length;
-        q->size--;
-        ERR(pthread_cond_signal(&q->isEmpty));
-        ERR(pthread_mutex_unlock(&q->lock));
-        // fprintf(stderr, "processor get(%d)\n", i);
-        if (args->done == 1) break;
-        //
         double err = 0.0;
-        for(int j = 1; j < args->state->size - 1; j++) {
-            double **now = args->state->now, **next = args->state->next;
-            next[i][j] = 0.25 * (now[i][j + 1] + now[i][j - 1]
-                                 + now[i - 1][j] + now[i + 1][j]);
-            // 
-            double diff = next[i][j] - now[i][j];
-            if (diff < 0) {
-                diff *= -1.0;
+        for (int index = args->indexStart; index < args->indexEnd; index++) {
+            size_t i = index / args->state->size;
+            size_t j = index % args->state->size;
+            double diff = laplace_iterate_cell(args->state, i, j);
+            if (diff > err) {
+                err = diff;
             }
-            // if (diff > err) {
-            //     err = diff;
-            // }
-            err += diff;
         }
-        // fprintf(stderr, "err=%lf\n", err);
-        // put(&args->state->output, err);
-        q = &args->state->output;
-        // fprintf(stderr, "put(%lf)\n", err);
-        ERR(pthread_mutex_lock(&q->lock));
-        while (q->size == q->length) {
-            ERR(pthread_cond_wait(&q->isEmpty, &q->lock));
-        }
-        // q->values[q->tail] = err;
-        args->state->done[q->tail] = err;
-        q->tail = (q->tail + 1) % q->length;
-        q->size++;
-        ERR(pthread_cond_signal(&q->isFull));
-        ERR(pthread_mutex_unlock(&q->lock));
+        // fprintf(stderr, "[%d] done iter=%d\n", args->threadId, iterations);
+        ERR(pthread_mutex_lock(&signal->lock));
+        args->error = err;
+        signal->nDone++;
+        ERR(pthread_cond_signal(&signal->done));
+        ERR(pthread_mutex_unlock(&signal->lock));
         iterations++;
     }
     // fprintf(stderr, "worker done with i=%d\n", iterations);
     return void_args;
 }
 
-int main(int argc, char *argv[]){
-    // seed for random generator
-    srand(10);
+int main(int argc, char *argv[]) {
     if(argc != 3){
         printf("Usage: ./laplace_seq N T\n");
         printf("N: The size of each side of the domain (grid)\n");
@@ -99,52 +72,35 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
     
-    Grids grids;
-    grids.size = atoi(argv[1]);
-    grids.now = (double **)calloc(grids.size, sizeof(double *));
-    grids.next = (double **)calloc(grids.size, sizeof(double *));
-    grids.todo = (int*)calloc(grids.size, sizeof(int));
-    grids.done = (double*)calloc(grids.size, sizeof(double));
-
-    grids.input.size = 0;
-    grids.input.head = 0;
-    grids.input.tail = 0;
-    grids.input.length = grids.size;
-    ERR(pthread_cond_init(&grids.input.isEmpty, NULL));
-    ERR(pthread_cond_init(&grids.input.isFull, NULL));
-    ERR(pthread_mutex_init(&grids.input.lock, NULL));
+    // size of each side of the grid
+    Grid grid = laplace_init(atoi(argv[1]));
+    fprintf(stderr, "Jacobi relaxation calculation: %lu x %lu grid\t%s\n", grid.size, grid.size, argv[0]);
     
-    grids.output.size = 0;
-    grids.output.head = 0;
-    grids.output.tail = 0;
-    grids.output.length = grids.size;
-    ERR(pthread_cond_init(&grids.output.isEmpty, NULL));
-    ERR(pthread_cond_init(&grids.output.isFull, NULL));
-    ERR(pthread_mutex_init(&grids.output.lock, NULL));
-
-    for (int i = 0; i < grids.size; i++){
-        grids.now[i] = (double *) calloc(grids.size, sizeof(double));
-        grids.next[i] = (double *) calloc(grids.size, sizeof(double));
-        // set grid initial conditions
-        for (int j = 0; j < grids.size; j++){
-            grids.now[i][j] = rand() % 100;
-            grids.next[i][j] = grids.now[i][j];
-            printf("%lf ", grids.now[i][j]);
+    Signals signal;
+    signal.nThreads = atoi(argv[2]);
+    signal.nDone = 0;
+    ERR(pthread_cond_init(&signal.start, NULL));
+    ERR(pthread_cond_init(&signal.done, NULL));
+    ERR(pthread_mutex_init(&signal.lock, NULL));
+    pthread_t threads[signal.nThreads];
+    ThreadArgs params[signal.nThreads];
+    size_t total = grid.size * grid.size;
+    size_t part = total / signal.nThreads;
+    for (int thread = 0; thread < signal.nThreads; thread++) {
+        params[thread].threadId = thread;
+        params[thread].indexStart = thread * part;
+        params[thread].indexEnd = (thread + 1) * part;
+        if (thread == signal.nThreads -1) {
+            params[thread].indexEnd = total;
         }
-        printf("\n");
-    }
-    printf("Jacobi relaxation calculation: %d x %d grid\t%s\n", grids.size, grids.size, argv[0]);
-    fprintf(stderr, "Root, grid(%p, %p)\n", grids.now, grids.next);
-
-    // int num_threads = atoi(argv[2]);
-    // num_threads = (size - 2) < num_threads ? (size - 2) : num_threads;
-    int num_threads = grids.size - 2;
-    pthread_t threads[num_threads];
-    ThreadArgs params[num_threads];
-    for (int thread = 0; thread < num_threads; thread++) {
-        params[thread].done = 0;
-        params[thread].state = &grids;
+        params[thread].error = 0.0;
+        params[thread].signal = &signal;
+        params[thread].state = &grid;
         ERR(pthread_create(&threads[thread], NULL, &processor, (void *)&params[thread]));
+        // wait for them to be ready
+        ERR(pthread_mutex_lock(&signal.lock));
+        ERR(pthread_cond_wait(&signal.done, &signal.lock));
+        ERR(pthread_mutex_unlock(&signal.lock));
     }
 
     struct timeval time_start, time_end;
@@ -156,52 +112,41 @@ int main(int argc, char *argv[]){
     double err = 0.0;
     int iter;
     for (iter = 0; iter <= ITER_MAX; iter++) {
-        for (int i = 1; i < grids.size - 1; i++) {
-            // put(&grids.input, i);
-            Queue *q = &grids.input;
-            // fprintf(stderr, "main put(%d)\n", i);
-            ERR(pthread_mutex_lock(&q->lock));
-            while (q->size == q->length) {
-                ERR(pthread_cond_wait(&q->isEmpty, &q->lock));
-            }
-            grids.todo[q->tail] = i;
-            q->tail = (q->tail + 1) % q->length;
-            q->size++;
-            ERR(pthread_cond_signal(&q->isFull));
-            ERR(pthread_mutex_unlock(&q->lock));
+        ERR(pthread_mutex_lock(&signal.lock));
+        signal.nDone = 0;
+        fprintf(stderr, "broadcast\n");
+        ERR(pthread_mutex_unlock(&signal.lock));
+        ERR(pthread_cond_broadcast(&signal.start));
+        //
+        sched_yield();
+        //
+        ERR(pthread_mutex_lock(&signal.lock));
+        while (signal.nDone != signal.nThreads) {
+            ERR(pthread_cond_wait(&signal.done, &signal.lock));
         }
+        fprintf(stderr, "gather error\n");
         // gather error
         err = 0.0;
-        for (int i = 1; i < grids.size - 1; i++) {
-            // double colErr = get(&grids.output);
-            Queue *q = &grids.output;
-            ERR(pthread_mutex_lock(&q->lock));
-            while (q->size == 0) {
-              ERR(pthread_cond_wait(&q->isFull, &q->lock));
+        for (int thread = 0; thread < signal.nThreads; thread++) {
+            if (err < params[thread].error) {
+                err = params[thread].error;
             }
-            double colErr = grids.done[q->head];
-            q->head = (q->head + 1) % q->length;
-            q->size--;
-            ERR(pthread_cond_signal(&q->isEmpty));
-            ERR(pthread_mutex_unlock(&q->lock));
-            // fprintf(stderr, "main get(%lf)\n", colErr);
-            // if (colErr > err) {
-            //     err = colErr;
-            // }
-            err += colErr;
+            params[thread].error = 0.0;
         }
+        //
+        double **swap_grid = grid.now;
+        grid.now = grid.next;
+        grid.next = swap_grid;
+        ERR(pthread_mutex_unlock(&signal.lock));
+        laplace_print(&grid);
         if (err < CONV_THRESHOLD) {
             fprintf(stderr, "main break iteration=%d, err=%le\n", iter, err);
             break;
         }
         // 
-        double **swap_grid = grids.now;
-        grids.now = grids.next;
-        grids.next = swap_grid;
-        //
         if (iter < 3 || (iter % (ITER_MAX / 100)) == 0) {
-          fprintf(stderr, "iteration=%d, err=%0.10lf\n", iter, err);
-          // fprintf(stderr, "Root, grid(%p, %p)\n", grids.now, grids.next);
+            fprintf(stderr, "iteration=%d, err=%0.10lf\n", iter, err);
+            // fprintf(stderr, "Root, grid(%p, %p)\n", grids.now, grids.next);
         }
     }
 
@@ -209,35 +154,17 @@ int main(int argc, char *argv[]){
     double exec_time = (double) (time_end.tv_sec - time_start.tv_sec) +
                        (double) (time_end.tv_usec - time_start.tv_usec) / 1000000.0;
     //
-    double **swap_grid = grids.now;
-    grids.now = grids.next;
-    grids.next = swap_grid;
-    for(int i = 0; i < grids.size; i++){
-        for(int j = 0; j < grids.size; j++){
-            printf("%lf ", grids.now[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n%s Kernel executed in %le seconds with %d iterations and error of %le\n", argv[0], exec_time, iter, err);
+    laplace_print(&grid);
+    fprintf(stderr, "\n%s Kernel executed in %le seconds with %d iterations and error of %le\n", argv[0], exec_time, iter, err);
     
     // deactivate the threads
-    // fprintf(stderr, "deactivate the threads\n");
-    // put(&grids.input, 0);
-    Queue *q = &grids.input;
-    // fprintf(stderr, "put(%d)\n", i);
-    ERR(pthread_mutex_lock(&q->lock));
-    q->tail = (q->tail + num_threads) % q->length;
-    q->size += num_threads;
-    for (int thread = 0; thread < num_threads; thread++) {
-        grids.todo[q->tail] = 0;
-        params[thread].done = 1;
-        ERR(pthread_cond_signal(&q->isFull));
-    }
-    ERR(pthread_mutex_unlock(&q->lock));
+    ERR(pthread_mutex_lock(&signal.lock));
+    signal.nThreads = 0;
+    ERR(pthread_cond_broadcast(&signal.start));
+    ERR(pthread_mutex_unlock(&signal.lock));
     // join
-    for (int thread = 0; thread < num_threads; thread++) {
-        void *retval;
-        ERR(pthread_join(threads[thread], &retval));
+    for (int thread = 0; thread < signal.nThreads; thread++) {
+        ERR(pthread_join(threads[thread], NULL));
     }
 
     return 0;

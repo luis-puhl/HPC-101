@@ -1,0 +1,5 @@
+report-org.txt:./laplace_org Kernel executed in 5.313575e+00 seconds with 40342 iterations and error of 9.999553e-06
+report-1.txt:./laplace_que Kernel executed in 2.591295e+01 seconds with 40342 iterations and error of 9.999553e-06
+report-2.txt:./laplace_que Kernel executed in 2.456326e+01 seconds with 40342 iterations and error of 9.999553e-06
+report-3.txt:./laplace_que Kernel executed in 2.416457e+01 seconds with 40342 iterations and error of 9.999553e-06
+report-4.txt:./laplace_que Kernel executed in 2.410381e+01 seconds with 40342 iterations and error of 9.999553e-06

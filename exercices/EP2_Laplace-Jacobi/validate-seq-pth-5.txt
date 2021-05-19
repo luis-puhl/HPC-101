@@ -1,2 +1,0 @@
-Jacobi relaxation calculation: 5 x 5 grid	./laplace_seq |	Jacobi relaxation calculation: 5 x 5 grid	./laplace_pth
-./laplace_seq Kernel executed in 5.100000e-05 seconds with 68 |	./laplace_pth Kernel executed in 1.324000e-03 seconds with 68
