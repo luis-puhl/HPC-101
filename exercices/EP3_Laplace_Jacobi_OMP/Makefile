@@ -8,8 +8,8 @@ bin/laplace_omp: laplace_omp.c
 	$(CC) $^ -o $@ -fopenmp
 
 GRID = $(subst out/validate-seq-omp-,,$(subst .txt,,$@))
-validation = $(foreach grid,1 50 100,out/validate-seq-omp-$(grid).txt)
-$(validation) out/validate-seq-omp-500.txt: bin/laplace_seq bin/laplace_omp
+validation = $(foreach grid,5 50 100 300,out/validate-seq-omp-$(grid).txt)
+$(validation): bin/laplace_seq bin/laplace_omp
 	./bin/laplace_seq $(GRID) 	2>$@.seq.err >$@.seq.txt
 	./bin/laplace_omp $(GRID) 4 2>$@.omp.err >$@.omp.txt
 	cat $@.seq.err $@.omp.err >$@

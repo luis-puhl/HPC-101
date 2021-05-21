@@ -23,12 +23,27 @@ int main(int argc, char *argv[]){
     int size = atoi(argv[1]);
     // matrix to be solved
     // allocate memory to the grid (matrix)
+    // double *grid = (double *) calloc(size * size, sizeof(double));
+    // double *new_grid = (double *) calloc(size * size, sizeof(double));
     double **grid = (double **) calloc(size, sizeof(double *));
     double **new_grid = (double **) calloc(size, sizeof(double *));
+    // double *thread_grids[threads];
+    // #pragma omp parallel for
+    // for (int i = 0; i < threads; i++){
+    //     thread_grids[i] = (double *) calloc(size * size, sizeof(double));
+    // }
+    // double **thread_grids[threads];
+    // #pragma omp parallel for
+    // for (int t = 0; t < threads; t++){
+    //     thread_grids[t] = (double **) calloc(size, sizeof(double*));
+    // }
     #pragma omp parallel for
     for (int i = 0; i < size; i++){
         grid[i] = (double *) calloc(size, sizeof(double));  
         new_grid[i] = (double *) calloc(size, sizeof(double));
+        // for (int t = 0; t < threads; t++){
+        //     thread_grids[t][i] = (double *) calloc(size, sizeof(double));
+        // }
     }
 
     // set grid initial conditions
@@ -47,6 +62,9 @@ int main(int argc, char *argv[]){
                grid[i][j] = 0;
             }
             new_grid[i][j] = 0.0;
+            // for (int t = 0; t < threads; t++){
+            //     thread_grids[t][i][j] = grid[i][j];
+            // }
         }
     }
 
@@ -69,13 +87,13 @@ int main(int argc, char *argv[]){
     double err = 1.0;
     int iter = 0;
     while ( err > CONV_THRESHOLD && iter <= ITER_MAX ) {
-
         err = 0.0;
-
         // calculates the Laplace equation to determine each cell's next value
-        #pragma omp parallel for collapse(2) reduction(+: err)
-        for( int i = 1; i < size-1; i++) {
-            for(int j = 1; j < size-1; j++) {
+        int i, j;
+        #pragma omp parallel for collapse(2) reduction(max: err) private(i,j) schedule(static)
+        for (i = 1; i < size-1; i++) {
+            for (j = 1; j < size-1; j++) {
+                // int t = omp_get_thread_num();
                 if (iter == 0 && i == 1 && j == 1) {
                     threads = omp_get_num_threads();
                 }
@@ -86,17 +104,23 @@ int main(int argc, char *argv[]){
                 if (diff < 0) {
                     diff = -diff;
                 }
-                err += diff;
-                // if (diff > err) {
-                //     err = diff;
-                // }
+                // err = diff;
+                if (diff > err) {
+                    err = diff;
+                }
             }
         }
-
+        
         // swap now and next
         double **swap = grid;
         grid = new_grid;
         new_grid = swap;
+        // // copie the next values into the working array for the next iteration
+        // for( int i = 1; i < size-1; i++) {
+        //     for( int j = 1; j < size-1; j++) {
+        //         grid[i][j] = new_grid[i][j];
+        //     }
+        // }
 
         if (iter < 3 || iter % (ITER_MAX / 100)== 0) {
             fprintf(stderr, "Error of %le at iteration %d\n", err, iter);

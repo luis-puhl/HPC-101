@@ -63,9 +63,7 @@ int main(int argc, char *argv[]){
     double err = 1.0;
     int iter = 0;
     while ( err > CONV_THRESHOLD && iter <= ITER_MAX ) {
-
         err = 0.0;
-
         // calculates the Laplace equation to determine each cell's next value
         for( int i = 1; i < size-1; i++) {
             for(int j = 1; j < size-1; j++) {
@@ -76,10 +74,10 @@ int main(int argc, char *argv[]){
                 if (diff < 0) {
                     diff = -diff;
                 }
-                err += diff;
-                // if (diff > err) {
-                //     err = diff;
-                // }
+                // err += diff;
+                if (diff > err) {
+                    err = diff;
+                }
             }
         }
 
@@ -87,6 +85,12 @@ int main(int argc, char *argv[]){
         double **swap = grid;
         grid = new_grid;
         new_grid = swap;
+        // // copie the next values into the working array for the next iteration
+        // for( int i = 1; i < size-1; i++) {
+        //     for( int j = 1; j < size-1; j++) {
+        //         grid[i][j] = new_grid[i][j];
+        //     }
+        // }
 
         if (iter < 3 || iter % (ITER_MAX / 100)== 0) {
             fprintf(stderr, "Error of %le at iteration %d\n", err, iter);
