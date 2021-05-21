@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
         err = 0.0;
         // calculates the Laplace equation to determine each cell's next value
         int i, j;
-        #pragma omp parallel for collapse(2) reduction(max: err) private(i,j) schedule(static)
+        #pragma omp parallel for reduction(max: err) private(i,j) schedule(static)
         for (i = 1; i < size-1; i++) {
             for (j = 1; j < size-1; j++) {
                 // int t = omp_get_thread_num();

@@ -1,13 +1,13 @@
-out/report-seq.txt:./bin/laplace_seq 300x300 executed 15.850603s, 50001 iter, 1.395731e-05 err.
-out/report-1.txt:./bin/laplace_omp 300x300 executed 22.273162s, 50001 iter, 1.395731e-05 err, 1 thr.
-out/report-2.txt:./bin/laplace_omp 300x300 executed 13.526465s, 50001 iter, 1.395731e-05 err, 2 thr.
-out/report-3.txt:./bin/laplace_omp 300x300 executed 11.864552s, 50001 iter, 1.395731e-05 err, 3 thr.
-out/report-4.txt:./bin/laplace_omp 300x300 executed 11.147491s, 50001 iter, 1.395731e-05 err, 4 thr.
-out/validate-seq-omp-5.txt:./bin/laplace_seq 5x5 executed 0.000033s, 46 iter, 5.960464e-06 err.
-out/validate-seq-omp-5.txt:./bin/laplace_omp 5x5 executed 0.000122s, 46 iter, 5.960464e-06 err, 4 thr.
-out/validate-seq-omp-50.txt:./bin/laplace_seq 50x50 executed 0.044328s, 5052 iter, 9.985706e-06 err.
-out/validate-seq-omp-50.txt:./bin/laplace_omp 50x50 executed 0.048460s, 5052 iter, 9.985706e-06 err, 4 thr.
-out/validate-seq-omp-100.txt:./bin/laplace_seq 100x100 executed 0.379802s, 10559 iter, 9.999090e-06 err.
-out/validate-seq-omp-100.txt:./bin/laplace_omp 100x100 executed 0.320402s, 10559 iter, 9.999090e-06 err, 4 thr.
-out/validate-seq-omp-300.txt:./bin/laplace_seq 300x300 executed 15.737396s, 50001 iter, 1.395731e-05 err.
-out/validate-seq-omp-300.txt:./bin/laplace_omp 300x300 executed 10.896778s, 50001 iter, 1.395731e-05 err, 4 thr.
+out/report-seq.txt:./bin/laplace_seq 300x300 executed 14.791415s, 50001 iter, 1.395731e-05 err.
+out/report-1.txt:./bin/laplace_omp 300x300 executed 15.041614s, 50001 iter, 1.395731e-05 err, 1 thr.
+out/report-2.txt:./bin/laplace_omp 300x300 executed 9.341882s, 50001 iter, 1.395731e-05 err, 2 thr.
+out/report-3.txt:./bin/laplace_omp 300x300 executed 8.434663s, 50001 iter, 1.395731e-05 err, 3 thr.
+out/report-4.txt:./bin/laplace_omp 300x300 executed 8.033170s, 50001 iter, 1.395731e-05 err, 4 thr.
+out/validate-seq-omp-5.txt:./bin/laplace_seq 5x5 executed 0.000037s, 46 iter, 5.960464e-06 err.
+out/validate-seq-omp-5.txt:./bin/laplace_omp 5x5 executed 0.000114s, 46 iter, 5.960464e-06 err, 4 thr.
+out/validate-seq-omp-50.txt:./bin/laplace_seq 50x50 executed 0.041363s, 5052 iter, 9.985706e-06 err.
+out/validate-seq-omp-50.txt:./bin/laplace_omp 50x50 executed 0.038435s, 5052 iter, 9.985706e-06 err, 4 thr.
+out/validate-seq-omp-100.txt:./bin/laplace_seq 100x100 executed 0.368389s, 10559 iter, 9.999090e-06 err.
+out/validate-seq-omp-100.txt:./bin/laplace_omp 100x100 executed 0.266333s, 10559 iter, 9.999090e-06 err, 4 thr.
+out/validate-seq-omp-300.txt:./bin/laplace_seq 300x300 executed 15.370509s, 50001 iter, 1.395731e-05 err.
+out/validate-seq-omp-300.txt:./bin/laplace_omp 300x300 executed 8.041227s, 50001 iter, 1.395731e-05 err, 4 thr.
