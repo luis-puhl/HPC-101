@@ -1,0 +1,11 @@
+SLURM_CPUS_PER_TASK=
+*** SEQUENTIAL ***
+laplace_seq 50x50 executed 0.049951s, 5052 iter, 9.985706e-06 err.
+*** OPENMP ***
+laplace_omp 50x50 executed 0.274324s, 5052 iter, 9.985706e-06 err, 8 thr.
+laplace_omp 50x50 executed 0.181275s, 5052 iter, 9.985706e-06 err, 8 thr.
+laplace_omp 50x50 executed 0.178141s, 5052 iter, 9.985706e-06 err, 8 thr.
+laplace_omp 50x50 executed 0.176537s, 5052 iter, 9.985706e-06 err, 8 thr.
+laplace_omp 50x50 executed 0.137777s, 5052 iter, 9.985706e-06 err, 8 thr.
+laplace_omp 50x50 executed 0.161601s, 5052 iter, 9.985706e-06 err, 8 thr.
+Done

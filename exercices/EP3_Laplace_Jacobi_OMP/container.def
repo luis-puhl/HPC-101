@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: ufscar/ubuntu_mpich:latest
+
+%help
+    solves Laplace equation in a rectangle, using OpenMP for parallel execution.
+    Next[i, j] = 1/4 * ( M[i -1, j] + M[i +1, j] + M[i, j -1] + M[i, j +1] )
+
+%files
+   ./Makefile /opt
+   ./laplace_seq.c /opt
+   ./laplace_omp.c /opt
+
+%post
+    echo "Compiling programs..."
+    cd /opt && mkdir bin && make bin/laplace_seq bin/laplace_omp
+    cp bin/laplace_seq bin/laplace_omp /usr/bin/
+
+%runscript
+    exec $@

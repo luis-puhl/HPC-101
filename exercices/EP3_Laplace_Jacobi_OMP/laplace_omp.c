@@ -10,14 +10,14 @@
 #define CONV_THRESHOLD 1.0e-5f // threshold of convergence
 
 int main(int argc, char *argv[]){
-    if(argc != 3){
-        printf("Usage: ./laplace_seq <N> <T>\n");
+    if(argc != 2){
+        printf("Usage: ./laplace_seq <N>\n");
         printf("<N>: The size of each side of the domain (grid)\n");
-        printf("<T>: The number of threads\n");
+        printf("Environment OMP_NUM_THREADS: The number of threads\n");
         exit(-1);
     }
     int threads;
-    omp_set_num_threads(atoi(argv[2]));
+    // omp_set_num_threads(atoi(argv[2]));
 
     // size of each side of the grid
     int size = atoi(argv[1]);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]){
         //     }
         // }
 
-        if (iter < 3 || iter % (ITER_MAX / 100)== 0) {
+        if (iter < 3 || iter % (ITER_MAX / 10)== 0) {
             fprintf(stderr, "Error of %le at iteration %d\n", err, iter);
         }
 

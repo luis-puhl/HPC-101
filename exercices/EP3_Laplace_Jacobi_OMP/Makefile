@@ -23,10 +23,14 @@ out/report-seq.txt: bin/laplace_seq
 THREADS = $(subst out/report-,,$(subst .txt,,$@))
 thread-reports = $(foreach thr,1 2 3 4,out/report-$(thr).txt)
 $(thread-reports): bin/laplace_omp
-	./bin/laplace_omp 300 $(THREADS) 2>$@ >$@.out
+	export OMP_NUM_THREADS=$(THREADS)
+	./bin/laplace_omp 300 2>$@ >$@.out
 report.txt: out/report-seq.txt $(thread-reports) $(validation)
 	grep executed $^ > $@
 
 clean:
 	rm -rf bin out report.txt
 	mkdir bin out
+
+container.sif: container.def laplace_seq.c laplace_omp.c
+	sudo singularity build container.sif container.def

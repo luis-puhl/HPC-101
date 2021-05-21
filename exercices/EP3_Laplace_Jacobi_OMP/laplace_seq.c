@@ -9,7 +9,7 @@
 #define CONV_THRESHOLD 1.0e-5f // threshold of convergence
 
 int main(int argc, char *argv[]){
-    if(argc != 2){
+    if (argc != 2){
         printf("Usage: ./laplace_seq <N>\n");
         printf("<N>: The size of each side of the domain (grid)\n");
         exit(-1);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
         //     }
         // }
 
-        if (iter < 3 || iter % (ITER_MAX / 100)== 0) {
+        if (iter < 3 || iter % (ITER_MAX / 10)== 0) {
             fprintf(stderr, "Error of %le at iteration %d\n", err, iter);
         }
 

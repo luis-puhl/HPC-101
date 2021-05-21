@@ -1,0 +1,12 @@
+Using srun
+SLURM_CPUS_PER_TASK=40
+*** SEQUENTIAL ***
+laplace_seq 500x500 executed 34.076459s, 50001 iter, 3.551344e-05 err.
+*** OPENMP ***
+laplace_omp 500x500 executed 36.467424s, 50001 iter, 3.551344e-05 err, 1 thr.
+laplace_omp 500x500 executed 21.924057s, 50001 iter, 3.551344e-05 err, 2 thr.
+laplace_omp 500x500 executed 14.161125s, 50001 iter, 3.551344e-05 err, 5 thr.
+laplace_omp 500x500 executed 11.519006s, 50001 iter, 3.551344e-05 err, 10 thr.
+laplace_omp 500x500 executed 10.148357s, 50001 iter, 3.551344e-05 err, 20 thr.
+laplace_omp 500x500 executed 14.689786s, 50001 iter, 3.551344e-05 err, 40 thr.
+Done

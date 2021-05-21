@@ -1,0 +1,16 @@
+laplace_omp Jacobi relaxation calculation: 500 x 500 grid
+Error of 5.000000e+01 at iteration 0
+Error of 1.250000e+01 at iteration 1
+Error of 9.375000e+00 at iteration 2
+Error of 2.695283e-03 at iteration 5000
+Error of 7.321272e-04 at iteration 10000
+Error of 3.345616e-04 at iteration 15000
+Error of 1.909919e-04 at iteration 20000
+Error of 1.237819e-04 at iteration 25000
+Error of 8.737172e-05 at iteration 30000
+Error of 6.567264e-05 at iteration 35000
+Error of 5.176771e-05 at iteration 40000
+Error of 4.230107e-05 at iteration 45000
+Error of 3.551344e-05 at iteration 50000
+
+laplace_omp 500x500 executed 14.689786s, 50001 iter, 3.551344e-05 err, 40 thr.
