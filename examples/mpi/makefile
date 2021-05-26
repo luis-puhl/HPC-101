@@ -14,4 +14,7 @@ bin/%: %.c
 
 %.out: bin/%
 	-./$^ | tee $@
+	-mpirun -n 2 $^ | tee -a $@
+	-mpirun -n 3 $^ | tee -a $@
+	-mpirun -n 4 $^ | tee -a $@
 	-mpirun $^ | tee -a $@

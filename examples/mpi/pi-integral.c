@@ -10,14 +10,20 @@ int main(int argc, char *argv[], char *env[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    struct timeval time_start, time_end;
-    gettimeofday(&time_start, NULL);
-
     int num_steps = (int) 1e9;
     double step = 1.0 / (double) num_steps;
     int chunk = num_steps / size;
+    int remainder = num_steps % size;
     int begin = rank * chunk;
-    int end = (rank +1 != size) ? (begin + chunk) : (num_steps);
+    int end = begin + chunk + (rank < remainder);
+    int work = end - begin;
+    printf("[%d] with %d todo\n", rank, work);
+    int totalWork = 0;
+    MPI_Reduce(&work, &totalWork, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (rank == 0) printf("[%d] total %d todo\n", rank, totalWork);
+
+    struct timeval time_start, time_end;
+    gettimeofday(&time_start, NULL);
     
     double x, sum = 0.0;
     for (int i = begin + 1; i <= end; i++){

@@ -1,2 +1,24 @@
-pi with 1000000000 steps is 3.141592654 in 5.185126 seconds
-pi with 1000000000 steps is 3.141592654 in 1.781733 seconds
+[0] with 1000000000 todo
+[0] total 1000000000 todo
+pi with 1000000000 steps is 3.141592654 in 4.956645 seconds
+[0] with 500000000 todo
+[0] total 1000000000 todo
+[1] with 500000000 todo
+pi with 1000000000 steps is 3.141592654 in 2.503520 seconds
+[2] with 333333333 todo
+[1] with 333333333 todo
+[0] with 333333334 todo
+[0] total 1000000000 todo
+pi with 1000000000 steps is 3.141592655 in 1.679256 seconds
+[2] with 250000000 todo
+[1] with 250000000 todo
+[0] with 250000000 todo
+[3] with 250000000 todo
+[0] total 1000000000 todo
+pi with 1000000000 steps is 3.141592654 in 1.914971 seconds
+[1] with 250000000 todo
+[2] with 250000000 todo
+[0] with 250000000 todo
+[3] with 250000000 todo
+[0] total 1000000000 todo
+pi with 1000000000 steps is 3.141592654 in 1.885149 seconds
