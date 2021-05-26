@@ -4,7 +4,7 @@ CC=mpicc
 CFLAGS = -Wall -g
 
 .PHONY: all clean
-all: clean bin/hello hello.out bin/send-rcv send-rcv.out
+all: clean hello.out send-rcv.out pi-integral.out
 clean:
 	-rm -rf bin *.out
 
