@@ -27,7 +27,8 @@ typedef struct {
 } Grids;
 
 typedef struct {
-    int done;
+    int done, threadId, indexStart, indexEnd;
+    double error;
     Grids *state;
 } ThreadArgs;
 

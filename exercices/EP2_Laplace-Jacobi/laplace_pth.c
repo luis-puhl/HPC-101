@@ -9,6 +9,7 @@
 #include <err.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <string.h>
 
 #define ERR(v) if((v) != 0) errx(EXIT_FAILURE, "Assert error. At "__FILE__":%d\n", __LINE__)
 typedef struct {
@@ -18,11 +19,11 @@ typedef struct {
 } Signals;
 
 typedef struct {
-    int threadId, indexStart, indexEnd, isReady;
+    int alive, threadId, indexStart, indexEnd, isReady;
     double error;
     pthread_mutex_t lock;
     pthread_cond_t ready, start;
-    Grid *state;
+    Grid grid;
     // Signals *signal;
 } ThreadArgs;
 
@@ -37,7 +38,8 @@ static void *processor(void *void_args) {
     // fprintf(stderr, "[%d] ready\n", args->threadId);
     ERR(pthread_cond_signal(&args->ready));
     args->isReady = 1;
-    Grid *grid = args->state;
+    args->alive = 1;
+    Grid *grid = &args->grid;
     size_t size = grid->size;
     while (1) {
         ERR(pthread_mutex_lock(&args->lock));
@@ -47,7 +49,7 @@ static void *processor(void *void_args) {
         }
         // fprintf(stderr, "[%d] start iter=%d\n", args->threadId, iterations);
         ERR(pthread_mutex_unlock(&args->lock));
-        if (args->state == NULL) {
+        if (!args->alive) {
             break;
         }
         double err = 0.0;
@@ -97,18 +99,18 @@ int main(int argc, char *argv[]) {
     pthread_t threads[nThreads];
     ThreadArgs params[nThreads];
     size_t total = grid.size * grid.size;
-    size_t part = total / nThreads;
+    size_t chunk = total / nThreads;
     for (int thread = 0; thread < nThreads; thread++) {
         params[thread].threadId = thread;
-        params[thread].indexStart = thread * part;
-        params[thread].indexEnd = (thread + 1) * part;
+        params[thread].indexStart = thread * chunk;
+        params[thread].indexEnd = (thread + 1) * chunk;
         if (thread == nThreads -1) {
             params[thread].indexEnd = total;
         }
         params[thread].error = 0.0;
         params[thread].isReady = 0;
         // params[thread].signal = &signal;
-        params[thread].state = &grid;
+        params[thread].grid = laplace_init(grid.size);
         // 
         ERR(pthread_cond_init(&params[thread].start, NULL));
         ERR(pthread_cond_init(&params[thread].ready, NULL));
@@ -131,24 +133,13 @@ int main(int argc, char *argv[]) {
     int iter;
     for (iter = 0; iter <= ITER_MAX; iter++) {
         for (int thread = 0; thread < nThreads; thread++) {
+            memcpy(params[thread].grid.now, grid.now, grid.size * grid.size * sizeof(double));
             ERR(pthread_mutex_lock(&params[thread].lock));
             params[thread].isReady = 0;
             ERR(pthread_cond_signal(&params[thread].start));
             ERR(pthread_mutex_unlock(&params[thread].lock));
         }
-        // ERR(pthread_mutex_lock(&signal.lock));
-        // signal.nDone = 0;
-        // fprintf(stderr, "broadcast\n");
-        // ERR(pthread_mutex_unlock(&signal.lock));
-        // ERR(pthread_cond_broadcast(&signal.start));
-        //
         sched_yield();
-        //
-        // ERR(pthread_mutex_lock(&signal.lock));
-        // while (signal.nDone != nThreads) {
-        //     ERR(pthread_cond_wait(&signal.done, &signal.lock));
-        // }
-        // fprintf(stderr, "gather error\n");
         // gather error
         err = 0.0;
         for (int thread = 0; thread < nThreads; thread++) {
@@ -161,11 +152,17 @@ int main(int argc, char *argv[]) {
             if (err < params[thread].error) {
                 err = params[thread].error;
             }
+            // for (int index = params[thread].indexStart; index < params[thread].indexEnd; index++) {
+            //     grid.next[index] = params->grid.next[index];
+            // }
+            size_t index = params[thread].indexStart;
+            memcpy(&grid.next[index], &params->grid.next[index], chunk * sizeof(double));
+            // 
             params[thread].error = 0.0;
             ERR(pthread_mutex_unlock(&params[thread].lock));
         }
         //
-        double **swap_grid = grid.now;
+        double *swap_grid = grid.now;
         grid.now = grid.next;
         grid.next = swap_grid;
         // ERR(pthread_mutex_unlock(&signal.lock));
@@ -198,7 +195,7 @@ int main(int argc, char *argv[]) {
     // ERR(pthread_mutex_unlock(&signal.lock));
     // join
     for (int thread = 0; thread < nThreads; thread++) {
-        params[thread].state = NULL;
+        params[thread].alive = 0;
         params[thread].isReady = 0;
         ERR(pthread_cond_signal(&params[thread].start));
         ERR(pthread_join(threads[thread], NULL));

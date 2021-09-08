@@ -13,7 +13,7 @@ bin/%: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 %.out: bin/%
-	-./$^ | tee $@
+	-$^ | tee $@
 	-mpirun -n 2 $^ | tee -a $@
 	-mpirun -n 3 $^ | tee -a $@
 	-mpirun -n 4 $^ | tee -a $@

@@ -40,6 +40,9 @@ report-2.txt:./laplace_que Kernel executed in  seconds with 40342 iterations and
 report-3.txt:./laplace_que Kernel executed in  seconds with 40342 iterations and error of 9.999553e-06
 report-4.txt:./laplace_que Kernel executed in  seconds with 40342 iterations and error of 9.999553e-06 -->
 
+<!-- ./laplace_pth Kernel 50x50 executed in 3.628925e+01 seconds with 50001 iterations and error of 5.000000e+01
+bin/laplace_seq Kernel executed in 3.789651e+00 seconds with 5051 iterations and error of 9.985706e-06 -->
+
 | Implementação | Processadores | tempo (segundos)  | _Speedup_     |
 |:---           |:---           |----:              |----:          |
 | Sequencial    | -             | 5.313575e+00      | -             |

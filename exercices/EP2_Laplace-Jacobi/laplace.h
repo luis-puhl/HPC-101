@@ -8,8 +8,10 @@
 
 typedef struct {
     size_t size;
-    double **now, **next;
+    double *now, *next;
 } Grid;
+
+#define GRID(grid, i, j) grid[i * size + j]
 
 Grid laplace_init(size_t size);
 int laplace_print(Grid *grid);
